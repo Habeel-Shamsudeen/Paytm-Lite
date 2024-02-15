@@ -1,7 +1,9 @@
 const mongoose = require("mongoose");
-mongoose.connect(
-  "mongodb+srv://habeelshamsudeen:MuyLHszKZTPsVi9I@cluster0.lyi1r5n.mongodb.net/PaytmApp"
-);
+const { DB_URL } = require("./config");
+const bcrypt = require("bcrypt");
+mongoose
+  .connect(DB_URL)
+  .then(() => console.log("mongoDB connected successfully!"));
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -32,6 +34,14 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.methods.createHash = async (plain_password) => {
+  const salt = 10;
+  return await bcrypt.hash(plain_password, salt);
+};
+
+userSchema.methods.validatePassword = async function(candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
+};
 const User = mongoose.model("User", userSchema);
 
 module.exports = {

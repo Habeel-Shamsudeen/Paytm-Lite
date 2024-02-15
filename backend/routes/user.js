@@ -3,13 +3,14 @@ const z = require("zod");
 const { User } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config");
+const { authMiddleware } = require("../middleware");
 const router = Router();
 
 const signUpSchema = z.object({
   username: z.string().email(),
   firstName: z.string(),
   lastName: z.string(),
-  password: z.string(),
+  password: z.string().min(8),
 });
 
 const signinSchema = z.object({
@@ -31,12 +32,16 @@ router.post("/signup", async (req, res) => {
       message: "Email already taken / Incorrect inputs",
     });
   }
-  const user = await User.create({
+
+  const user = new User({
     username: UserDetails.username,
     firstName: UserDetails.firstName,
     lastName: UserDetails.lastName,
-    password: UserDetails.password,
   });
+
+  var hashedPassword = await user.createHash(UserDetails.password)
+  user.password=hashedPassword;
+  await user.save()
 
   const userId = user._id;
 
@@ -60,22 +65,55 @@ router.post("/signin", async (req, res) => {
     });
   }
   const user = await User.findOne({
-    username: req.body.username,
-    password: req.body.password,
+    username: req.body.username
   });
   if (!user) {
     return res.status(411).json({
-      message: "Error while logging in",
+      message: "User do no exist",
     });
   }
-  const token = jwt.sign(
-    {
-      userId: user._id,
-    },
-    JWT_SECRET
-  );
-  return res.status(200).json({
-    token: token,
+  if(await user.validatePassword(req.body.password)){
+    const token = jwt.sign(
+        {
+          userId: user._id,
+        },
+        JWT_SECRET
+      );
+      return res.status(200).json({
+        token: token,
+        message:"User Successfuly logged in"
+      });
+  }else{
+    return res.status(411).json({
+        message: "Incorrect Password",
+      });
+  }
+});
+
+const updationSchema = z.object({
+  password: z.string().min(8).optional(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+});
+
+router.put("/", authMiddleware, async (req, res) => {
+  const { success } = updationSchema.safeParse(req.body);
+  if (!success) {
+    return res.status(411).json({
+      message: "Error while updating information",
+    });
+  }
+  const user = await User.findById(req.userId);
+  if(req.body.password){
+    var hashedPassword = await user.createHash(req.body.password)
+    req.body.password=hashedPassword;
+  }
+  await User.updateOne({ _id: req.userId }, req.body);
+
+  res.json({
+    message: "Updated successfully",
   });
 });
+
+
 module.exports = router;
