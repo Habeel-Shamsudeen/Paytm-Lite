@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const z = require("zod");
-const { User } = require("../db");
+const { User, Account } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = require("../config");
 const { authMiddleware } = require("../middleware");
@@ -39,11 +39,16 @@ router.post("/signup", async (req, res) => {
     lastName: UserDetails.lastName,
   });
 
-  var hashedPassword = await user.createHash(UserDetails.password)
-  user.password=hashedPassword;
-  await user.save()
+  var hashedPassword = await user.createHash(UserDetails.password);
+  user.password = hashedPassword;
+  await user.save();
 
   const userId = user._id;
+  
+  await Account.create({
+    userId,
+    balance:Math.floor((Math.random()*10000)+200)
+  })
 
   const token = jwt.sign(
     {
@@ -65,28 +70,28 @@ router.post("/signin", async (req, res) => {
     });
   }
   const user = await User.findOne({
-    username: req.body.username
+    username: req.body.username,
   });
   if (!user) {
     return res.status(411).json({
       message: "User do no exist",
     });
   }
-  if(await user.validatePassword(req.body.password)){
+  if (await user.validatePassword(req.body.password)) {
     const token = jwt.sign(
-        {
-          userId: user._id,
-        },
-        JWT_SECRET
-      );
-      return res.status(200).json({
-        token: token,
-        message:"User Successfuly logged in"
-      });
-  }else{
+      {
+        userId: user._id,
+      },
+      JWT_SECRET
+    );
+    return res.status(200).json({
+      token: token,
+      message: "User Successfuly logged in",
+    });
+  } else {
     return res.status(411).json({
-        message: "Incorrect Password",
-      });
+      message: "Incorrect Password",
+    });
   }
 });
 
@@ -104,9 +109,9 @@ router.put("/", authMiddleware, async (req, res) => {
     });
   }
   const user = await User.findById(req.userId);
-  if(req.body.password){
-    var hashedPassword = await user.createHash(req.body.password)
-    req.body.password=hashedPassword;
+  if (req.body.password) {
+    var hashedPassword = await user.createHash(req.body.password);
+    req.body.password = hashedPassword;
   }
   await User.updateOne({ _id: req.userId }, req.body);
 
@@ -115,5 +120,33 @@ router.put("/", authMiddleware, async (req, res) => {
   });
 });
 
+router.get("/bulk", async (req, res) => {
+  const filter = req.query.filter || "";
+
+  const users = await User.find({
+    $or: [
+      {
+        firstName: {
+          $regex: filter,
+          $options:"i"
+        },
+      },
+      {
+        lastName: {
+          $regex: filter,
+          $options:"i"
+        },
+      },
+    ],
+  });
+  res.json({
+    user: users.map((user) => ({
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      _id: user._id,
+    })),
+  });
+});
 
 module.exports = router;
