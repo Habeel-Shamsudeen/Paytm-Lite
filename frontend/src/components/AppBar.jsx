@@ -1,4 +1,4 @@
-export function AppBar() {
+export function AppBar({name}) {
   return (
     <div className="w-full flex justify-between px-4 py-2 border rounded-lg shadow-sm h-14">
       <div className="flex">
@@ -24,10 +24,10 @@ export function AppBar() {
       <div className="flex">
         <div className="flex justify-center h-full ">
           <div className="font-normal align-middle flex flex-col justify-center pr-2 text-lg mr-3">
-            Hello, User
+            Hello, {name}
           </div>
           <div class="relative inline-flex items-center justify-center w-10 h-10 overflow-hidden bg-gray-100 rounded-full dark:bg-gray-600 mr-2">
-            <span class="font-medium text-gray-500 dark:text-gray-300">JL</span>
+            <span class="font-medium text-gray-500 dark:text-gray-300">{name[0]}</span>
           </div>
         </div>
       </div>

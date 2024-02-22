@@ -44,11 +44,11 @@ router.post("/signup", async (req, res) => {
   await user.save();
 
   const userId = user._id;
-  
+
   await Account.create({
     userId,
-    balance:Math.floor((Math.random()*10000)+200)
-  })
+    balance: Math.floor(Math.random() * 10000 + 200),
+  });
 
   const token = jwt.sign(
     {
@@ -120,25 +120,26 @@ router.put("/", authMiddleware, async (req, res) => {
   });
 });
 
-router.get("/bulk", async (req, res) => {
+router.get("/bulk", authMiddleware, async (req, res) => {
   const filter = req.query.filter || "";
 
-  const users = await User.find({
+  let users = await User.find({
     $or: [
       {
         firstName: {
           $regex: filter,
-          $options:"i"
+          $options: "i",
         },
       },
       {
         lastName: {
           $regex: filter,
-          $options:"i"
+          $options: "i",
         },
       },
     ],
   });
+  users = users.filter((user) => user._id != req.userId);
   res.json({
     user: users.map((user) => ({
       username: user.username,
@@ -148,5 +149,28 @@ router.get("/bulk", async (req, res) => {
     })),
   });
 });
+
+router.get("/me",authMiddleware,async (req,res)=>{
+  try{
+    const me = await User.findOne({
+      _id:req.userId
+    });
+
+    const meAccount = await Account.findOne({
+      userId:req.userId
+    })
+    res.json({
+      username:me.username,
+      firstName:me.firstName,
+      lastName:me.lastName,
+      balance:meAccount.balance,
+      loggedIn:true
+    })
+  }catch(err){
+    res.status(411).json({
+      loggedIn:false
+    })
+  }
+})
 
 module.exports = router;

@@ -38,6 +38,13 @@ To run the project locally, follow these steps:
 5. Start the backend server: `npm start` or `npm run dev` for development mode
 6. Start the frontend development server: `npm start`
 
+## TODO Features/Improvements
+
+1. Better backend exception handling.
+2. Setup a signout function which will delete the token in local Storage.
+3. Setup a delete route where the user can delete his account.
+4. Protected react routes. Do not allow access to dashboard for unauthenticated users.
+
 ## Contributing
 
 Contributions are welcome! If you'd like to contribute to this project, please follow these guidelines:
