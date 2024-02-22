@@ -1,7 +1,7 @@
 const { Router } = require("express");
 const { authMiddleware } = require("../middleware");
 const { Account } = require("../db");
-const { default: mongoose, startSession } = require("mongoose");
+const { default: mongoose} = require("mongoose");
 const { z } = require("zod");
 
 const router = Router();
