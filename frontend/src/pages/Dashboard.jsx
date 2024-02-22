@@ -3,10 +3,12 @@ import { AppBar } from "../components/AppBar";
 import { Balance } from "../components/Balance";
 import { Userscomponent } from "../components/UsersComponent";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 export function Dashboard() {
   const [balance, setBalance] = useState(0);
   const [name, setName] = useState("");
+  const navigate = useNavigate();
   useEffect(() => {
     async function getMyData() {
       try {
@@ -20,7 +22,9 @@ export function Dashboard() {
         );
         setBalance(response.data.balance);
         setName(response.data.firstName);
-      } catch (error) {}
+      } catch (error) {
+        navigate("/signin");
+      }
     }
     getMyData();
   }, [balance, name]);
