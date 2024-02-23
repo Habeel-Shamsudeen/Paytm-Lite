@@ -43,8 +43,7 @@ To run the project locally, follow these steps:
 1. Better backend exception handling.
 2. Setup a signout function which will delete the token in local Storage.
 3. Setup a delete route where the user can delete his account.
-4. Protected react routes. Do not allow access to dashboard for unauthenticated users.
-5. Create the frontend to allow the user to update his details
+4. Create the frontend to allow the user to update his details
 
 ## Contributing
 
