@@ -7,7 +7,7 @@ function useDebounce(filter, n) {
   const [debouncedValue, setDebounceValue] = useState([]);
   useEffect(() => {
     const value = setTimeout(() => {
-      setDebounceValue(filter)
+      setDebounceValue(filter);
     }, n);
     return () => clearTimeout(value);
   }, [filter, n]);
@@ -16,7 +16,7 @@ function useDebounce(filter, n) {
 }
 
 export function Userscomponent() {
-  const [user,setUser] = useState([]);
+  const [user, setUser] = useState([]);
   const [filter, setFilter] = useState("");
   const debouncedValue = useDebounce(filter, 300);
   useEffect(() => {
