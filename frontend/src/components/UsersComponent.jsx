@@ -4,39 +4,32 @@ import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
 function useDebounce(filter, n) {
-  const [debouncedUser, setDebounceUser] = useState([]);
+  const [debouncedValue, setDebounceValue] = useState([]);
   useEffect(() => {
     const value = setTimeout(() => {
-      axios
-        .get("http://localhost:3000/api/v1/user/bulk?filter=" + filter, {
-          headers: {
-            Authorization: "Bearer " + localStorage.getItem("token"),
-          },
-        })
-        .then((response) => {
-          setDebounceUser(response.data.user);
-        });
+      setDebounceValue(filter)
     }, n);
     return () => clearTimeout(value);
   }, [filter, n]);
 
-  return [debouncedUser, setDebounceUser];
+  return debouncedValue;
 }
 
 export function Userscomponent() {
+  const [user,setUser] = useState([]);
   const [filter, setFilter] = useState("");
-  const [debouncedUsers, setDebounceUser] = useDebounce(filter, 300);
+  const debouncedValue = useDebounce(filter, 300);
   useEffect(() => {
     axios
-      .get("http://localhost:3000/api/v1/user/bulk?filter=" + filter, {
+      .get("http://localhost:3000/api/v1/user/bulk?filter=" + debouncedValue, {
         headers: {
           Authorization: "Bearer " + localStorage.getItem("token"),
         },
       })
       .then((response) => {
-        setDebounceUser(response.data.user);
+        setUser(response.data.user);
       });
-  }, []);
+  }, [debouncedValue]);
   return (
     <div className="flex flex-col px-10">
       <div className="text-xl font-bold">Users</div>
@@ -47,7 +40,7 @@ export function Userscomponent() {
         onChange={(e) => setFilter(e.target.value)}
       />
       <div>
-        {debouncedUsers.map((user) => (
+        {user.map((user) => (
           <User user={user} key={user._id} />
         ))}
       </div>
